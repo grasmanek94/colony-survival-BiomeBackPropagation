@@ -6,3 +6,6 @@ obj/
 *.exe
 *.mdb
 *.user
+packages/
+*.zip
+*.rar

@@ -4,3 +4,4 @@ For example, if you start a colony in the Far East, the related colonies will un
 Mod compatibility:   
 
 - `0.7.1`
+- `0.7.2`
