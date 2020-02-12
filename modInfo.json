@@ -7,14 +7,20 @@
 		"enabled": true,
 		"marksgamemodded": true,
 		"name": "grasmanek94.BiomeBackPropagation",
-		"version": "0.0.1",
+		"version": "0.0.2",
 		"website": "https://github.com/grasmanek94/colony-survival-BiomeBackPropagation",
 		"about": "Unlocks biome specific science and tools for all related colonies (parent and children)",
 		"patchnotes": [
 			{
-				"version": "0.0.1.0",
+				"version": "0.0.1",
 				"notes": [
 					"Initial Release"
+				]
+			},
+			{
+				"version": "0.0.2",
+				"notes": [
+					"Fix biome specific research/science and recipes not available"
 				]
 			}
 		],

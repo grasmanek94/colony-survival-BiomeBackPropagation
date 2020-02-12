@@ -186,26 +186,35 @@ namespace grasmanek94.BiomeBackPropagation
             }
         }
 
-        [ModLoader.ModCallback(ModLoader.EModCallbackType.OnLoadingColony, "OnLoadingColony")]
+        [ModLoader.ModCallback(ModLoader.EModCallbackType.OnModifyResearchables, "grasmanek94.BiomeBackPropagation.OnModifyResearchables", float.MaxValue)]
+        static void OnModifyResearchables(Dictionary<string, DefaultResearchable> researchables)
+        {
+            foreach (var researchable in researchables)
+            {
+                researchable.Value.RequiredScienceBiome = "";
+            }
+        }
+
+        [ModLoader.ModCallback(ModLoader.EModCallbackType.OnLoadingColony, "grasmanek94.BiomeBackPropagation.OnLoadingColony")]
         static void OnLoadingColony(Colony colony, JSONNode node)
         {
             ApplyBiomeScienceToRelatives(colony);
         }
 
-        [ModLoader.ModCallback(ModLoader.EModCallbackType.OnCreatedColony, "OnCreatedColony")]
+        [ModLoader.ModCallback(ModLoader.EModCallbackType.OnCreatedColony, "grasmanek94.BiomeBackPropagation.OnCreatedColony")]
         static void OnCreatedColony(Colony colony)
         {
             ApplyBiomeScienceToRelatives(colony);
         }
 
-        [ModLoader.ModCallback(ModLoader.EModCallbackType.OnActiveColonyChanges, "OnActiveColonyChanges")]
+        [ModLoader.ModCallback(ModLoader.EModCallbackType.OnActiveColonyChanges, "grasmanek94.BiomeBackPropagation.OnActiveColonyChanges")]
         static void OnActiveColonyChanges(Players.Player player, Colony oldColony, Colony newColony)
         {
             ApplyBiomeScienceToRelatives(oldColony);
             ApplyBiomeScienceToRelatives(newColony);
         }
 
-        [ModLoader.ModCallback(ModLoader.EModCallbackType.OnPlayerRespawn, "OnPlayerRespawn")]
+        [ModLoader.ModCallback(ModLoader.EModCallbackType.OnPlayerRespawn, "grasmanek94.BiomeBackPropagation.OnPlayerRespawn")]
         static void OnPlayerRespawn(Players.Player player)
         {
             ApplyBiomeScienceToRelatives(player.ActiveColony);
