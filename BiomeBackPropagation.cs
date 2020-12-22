@@ -1,29 +1,74 @@
-﻿using Pipliz.JSON;
+﻿using HarmonyLib;
+using Jobs;
+using Pipliz.JSON;
 using Science;
+using System;
 using System.Collections.Generic;
 
 namespace grasmanek94.BiomeBackPropagation
 {
+    [HarmonyPatch(typeof(CommandToolManager))]
+    [HarmonyPatch("IsInScienceBiome")]
+    [HarmonyPatch(new Type[] { typeof(Players.Player), typeof(string) })]
+    class CommandToolManagerHookIsInScienceBiome
+    {
+        static bool Prefix(CommandToolManager __instance, ref bool __result, Players.Player p, string biome)
+        {
+            if (p.ActiveColony == null || 
+                p.ActiveColony.Banners == null || 
+                p.ActiveColony.Banners.Length == 0 || 
+                ServerManager.ScienceManager == null ||
+                biome == null)
+            {
+                return true;
+            }
+
+            ScienceKey key_raw = ServerManager.ScienceManager.GetKey(biome.Replace("sciencebiome.", "biome."));
+            ScienceKey key_science = ServerManager.ScienceManager.GetKey(biome);
+
+            if (!BiomeBackPropagation.HasScienceBiome(p.ActiveColony, key_raw) && 
+                !BiomeBackPropagation.HasScienceBiome(p.ActiveColony, key_science))
+            {
+                return true;
+            }
+
+            __result = true;
+            return false;
+        }
+    }
+
     [ModLoader.ModManager]
     public static class BiomeBackPropagation
     {
+        [ModLoader.ModCallback(ModLoader.EModCallbackType.OnAssemblyLoaded, "grasmanek94.BiomeBackPropagation.OnAssemblyLoaded")]
+        static void OnAssemblyLoaded(string assemblyPath)
+        {
+            var harmony = new Harmony("grasmanek94.BiomeBackPropagation");
+            harmony.PatchAll();
+        }
+
         static List<ScienceKey> sciencebiomes;
+
+        public static readonly List<string> biomes = new List<string>
+        {
+            "biome.oldworld",
+            "biome.newworld",
+            "biome.fareast",
+            "biome.tropics",
+            "biome.arctic",
+            "sciencebiome.oldworld",
+            "sciencebiome.newworld",
+            "sciencebiome.fareast",
+            "sciencebiome.tropics",
+            "sciencebiome.arctic"
+        };
 
         static void Initialize()
         {
-            if(sciencebiomes != null && sciencebiomes.Count > 0)
+            if (sciencebiomes != null && sciencebiomes.Count > 0)
             {
                 return;
             }
-
-            List<string> biomes = new List<string>
-            {
-                "biome.oldworld",
-                "biome.newworld",
-                "biome.fareast",
-                "biome.tropics",
-                "biome.arctic"
-            };
 
             sciencebiomes = new List<ScienceKey>();
 
@@ -46,7 +91,7 @@ namespace grasmanek94.BiomeBackPropagation
         {
             List<Colony> list = new List<Colony>();
 
-            if(start == null)
+            if (start == null)
             {
                 return list;
             }
@@ -54,7 +99,7 @@ namespace grasmanek94.BiomeBackPropagation
             // bool = isProcessed
             Dictionary<Colony, bool> colonies = new Dictionary<Colony, bool>();
             Dictionary<Players.Player, bool> players = new Dictionary<Players.Player, bool>();
-            
+
             colonies.Add(start, false);
 
             while (colonies.ContainsValue(false) || players.ContainsValue(false))
@@ -62,7 +107,7 @@ namespace grasmanek94.BiomeBackPropagation
                 var loop_colonies = new List<Colony>(colonies.Keys);
                 foreach (var colony in loop_colonies)
                 {
-                    if(colony == null)
+                    if (colony == null)
                     {
                         continue;
                     }
@@ -82,7 +127,7 @@ namespace grasmanek94.BiomeBackPropagation
                 }
 
                 var loop_players = new List<Players.Player>(players.Keys);
-                foreach(var player in loop_players)
+                foreach (var player in loop_players)
                 {
                     if (player == null)
                     {
@@ -110,11 +155,11 @@ namespace grasmanek94.BiomeBackPropagation
         {
             List<ScienceKey> sciences = new List<ScienceKey>();
 
-            foreach(var colony in colonies)
+            foreach (var colony in colonies)
             {
-                foreach(var science in sciencebiomes)
+                foreach (var science in sciencebiomes)
                 {
-                    if(HasScienceBiome(colony, science))
+                    if (HasScienceBiome(colony, science))
                     {
                         if (!sciences.Contains(science))
                         {
@@ -123,7 +168,7 @@ namespace grasmanek94.BiomeBackPropagation
                     }
                 }
 
-                if(sciences.Count == sciencebiomes.Count)
+                if (sciences.Count == sciencebiomes.Count)
                 {
                     break;
                 }
@@ -135,7 +180,7 @@ namespace grasmanek94.BiomeBackPropagation
         static void ApplyBiomeScienceToRelatives(Colony start)
         {
             if (start == null ||
-                start.ScienceData == null )
+                start.ScienceData == null)
             {
                 return;
             }
@@ -153,9 +198,9 @@ namespace grasmanek94.BiomeBackPropagation
             }
         }
 
-        static bool HasScienceBiome(Colony colony, ScienceKey sciencebiome)
+        public static bool HasScienceBiome(Colony colony, ScienceKey sciencebiome)
         {
-            if (colony == null || 
+            if (colony == null ||
                 colony.ScienceData == null ||
                 colony.ScienceData.CompletedScience == null ||
                 colony.ScienceData.ScienceMask == null)
@@ -163,7 +208,7 @@ namespace grasmanek94.BiomeBackPropagation
                 return false;
             }
 
-            return 
+            return
                 colony.ScienceData.CompletedScience.Contains(sciencebiome) &&
                 colony.ScienceData.ScienceMask.GetAvailable(sciencebiome);
         }
